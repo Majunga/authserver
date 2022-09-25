@@ -11,9 +11,9 @@ pub fn build_google_auth() -> BasicClient {
   );
 
   let auth_url = AuthUrl::new("https://accounts.google.com/o/oauth2/v2/auth".to_string())
-  .expect("Invalid authorization endpoint URL");
-let token_url = TokenUrl::new("https://www.googleapis.com/oauth2/v4/token".to_string())
-  .expect("Invalid token endpoint URL");
+    .expect("Invalid authorization endpoint URL");
+  let token_url = TokenUrl::new("https://www.googleapis.com/oauth2/v4/token".to_string())
+    .expect("Invalid token endpoint URL");
 
   let oauth = BasicClient::new(
       client_id,
