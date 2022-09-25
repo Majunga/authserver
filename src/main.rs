@@ -1,12 +1,10 @@
-#[macro_use]
-mod config;
+use actix_web::{Responder, HttpResponse, get, HttpServer};
+use oauth2::basic::BasicClient;
+use openssl::ssl::{SslAcceptor, SslFiletype, SslMethod};
 
-use actix_web::{App, HttpServer, Responder, HttpResponse, get};
-use actix_web::middleware::Logger;
-use color_eyre::Result;
-use tracing::{info, instrument};
-
-use self::config::Config;
+struct AppState {
+    oauth: BasicClient,
+}
 
 #[get("/healthprobe")]
 async fn healthprobe() -> impl Responder {
@@ -14,22 +12,16 @@ async fn healthprobe() -> impl Responder {
 }
 
 #[actix_rt::main]
-#[instrument]
-async fn main() -> Result<()> {
-    let config = Config::new()
-        .expect("Server config");
-
-    info!("Starting server at http://{}:{}/", config.host, config.port);
+async fn main() -> std::io::Result<()> {
+    let mut builder = SslAcceptor::mozilla_intermediate(SslMethod::tls())?;
+    builder.set_private_key_file("key.pem", SslFiletype::PEM)?;
+    builder.set_certificate_chain_file("cert.pem")?;
 
     HttpServer::new(|| {
-        App::new()
-         .service(healthprobe)
-         .wrap(Logger::default())
+        actix_web::App::new()
+            .service(healthprobe)
     })
-        .bind(format!("{}:{}", config.host, config.port))
-        .expect("Server bind")
-        .run()
-        .await?;
-    
-    Ok(())
+    .bind_openssl("localhost:8080", builder)?
+    .run()
+    .await
 }
