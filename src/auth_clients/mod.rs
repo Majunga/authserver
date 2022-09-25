@@ -1,1 +1,1 @@
-pub mod google_client;
+pub mod google_auth;

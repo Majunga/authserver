@@ -1,7 +1,9 @@
 mod auth_clients;
+use crate::cookie::Key;
 
-use actix_web::{Responder, HttpResponse, get, HttpServer, web::Data};
-use oauth2::basic::BasicClient;
+use actix_session::{SessionMiddleware, config::PersistentSession, storage::CookieSessionStore};
+use actix_web::{Responder, HttpResponse, get, HttpServer, web::Data, cookie};
+use oauth2::{basic::BasicClient};
 use openssl::ssl::{SslAcceptor, SslAcceptorBuilder, SslFiletype, SslMethod};
 
 struct AppState {
@@ -23,13 +25,20 @@ fn build_ssl() -> SslAcceptorBuilder {
 
 #[actix_rt::main]
 async fn main() -> std::io::Result<()> {
-
-
     HttpServer::new(|| {
-        let oauth = auth_clients::google_client::build_google_auth();
+        let oauth = auth_clients::google_auth::client::build_google_auth();
 
         actix_web::App::new()
             .app_data(Data::new(AppState { oauth }))
+            .wrap(
+                SessionMiddleware::builder(CookieSessionStore::default(), Key::from(&[0; 64]))
+                    .cookie_secure(false)
+                    // customize session and cookie expiration
+                    .session_lifecycle(
+                        PersistentSession::default().session_ttl(cookie::time::Duration::hours(2)),
+                    )
+                    .build(),
+            )
             .service(healthprobe)
     })
     .bind_openssl("localhost:4433", build_ssl())?
