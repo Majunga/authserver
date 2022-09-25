@@ -42,6 +42,7 @@ async fn main() -> std::io::Result<()> {
             .service(healthprobe)
     })
     .bind_openssl("localhost:4433", build_ssl())?
+    .expect("Can not bind to port 4433")
     .run()
     .await
 }
