@@ -1,12 +1,13 @@
 mod auth_clients;
+mod authentication;
 use crate::cookie::Key;
 
-use actix_session::{SessionMiddleware, config::PersistentSession, storage::CookieSessionStore};
+use actix_session::{Session, SessionMiddleware, config::PersistentSession, storage::CookieSessionStore};
 use actix_web::{Responder, HttpResponse, get, HttpServer, web::Data, cookie};
 use oauth2::{basic::BasicClient};
 use openssl::ssl::{SslAcceptor, SslAcceptorBuilder, SslFiletype, SslMethod};
 
-struct AppState {
+pub struct AppState {
     oauth: BasicClient,
 }
 
@@ -21,6 +22,27 @@ fn build_ssl() -> SslAcceptorBuilder {
     builder.set_certificate_chain_file("cert.pem").unwrap();
 
     return builder;
+}
+
+#[get("/")]
+async fn index(session: Session) -> impl Responder {
+    let link = if let Some(_login) = session.get::<bool>("login").unwrap() {
+        "logout"
+    } else {
+        "login"
+    };
+
+    let html = format!(
+        r#"<html>
+        <head><title>OAuth2 Test</title></head>
+        <body>
+            <a href="/{}">{}</a>
+        </body>
+    </html>"#,
+        link, link
+    );
+
+    HttpResponse::Ok().body(html)
 }
 
 #[actix_rt::main]
@@ -40,8 +62,12 @@ async fn main() -> std::io::Result<()> {
                     .build(),
             )
             .service(healthprobe)
+            .service(index)
+            .service(authentication::controller::login)
+            .service(authentication::controller::logout)
+            .service(authentication::controller::auth)
     })
-    .bind_openssl("localhost:4433", build_ssl())?
+    .bind_openssl("localhost:4433", build_ssl())
     .expect("Can not bind to port 4433")
     .run()
     .await

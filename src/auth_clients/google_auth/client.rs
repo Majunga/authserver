@@ -20,7 +20,7 @@ let token_url = TokenUrl::new("https://www.googleapis.com/oauth2/v4/token".to_st
       Some(client_secret),
       auth_url,
       Some(token_url),
-  ).set_redirect_uri(RedirectUrl::new("https://127.0.0.1:4433/auth".to_string()).expect("Invalid redirect URL")); 
+  ).set_redirect_uri(RedirectUrl::new("https://localhost:4433/auth".to_string()).expect("Invalid redirect URL")); 
 
   return oauth;
 }
