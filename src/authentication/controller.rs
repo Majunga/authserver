@@ -59,7 +59,7 @@ pub async fn auth(session: Session, data: web::Data<AppState>, params: web::Quer
         <pre>{}</pre>
         Google returned the following token:
         <pre>{:?}</pre>
-        <p><a href="/logout">Logout</a></p>
+        <p><a href="authentication/logout">Logout</a></p>
       </body>
     </html>
     "#,
