@@ -36,7 +36,7 @@ async fn index(session: Session) -> impl Responder {
         r#"<html>
         <head><title>OAuth2 Test</title></head>
         <body>
-            <a href="/{}">{}</a>
+            <a href="authentication/{}">{}</a>
         </body>
     </html>"#,
         link, link
@@ -47,6 +47,8 @@ async fn index(session: Session) -> impl Responder {
 
 #[actix_rt::main]
 async fn main() -> std::io::Result<()> {
+    dotenv::dotenv().ok();
+
     HttpServer::new(|| {
         let oauth = auth_clients::google_auth::client::build_google_auth();
 
@@ -63,9 +65,7 @@ async fn main() -> std::io::Result<()> {
             )
             .service(healthprobe)
             .service(index)
-            .service(authentication::controller::login)
-            .service(authentication::controller::logout)
-            .service(authentication::controller::auth)
+            .service(authentication::routes())
     })
     .bind_openssl("localhost:4433", build_ssl())
     .expect("Can not bind to port 4433")

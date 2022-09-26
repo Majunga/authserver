@@ -20,7 +20,7 @@ pub fn build_google_auth() -> BasicClient {
       Some(client_secret),
       auth_url,
       Some(token_url),
-  ).set_redirect_uri(RedirectUrl::new("https://localhost:4433/auth".to_string()).expect("Invalid redirect URL")); 
+  ).set_redirect_uri(RedirectUrl::new("https://localhost:4433/authentication/auth".to_string()).expect("Invalid redirect URL")); 
 
   return oauth;
 }
